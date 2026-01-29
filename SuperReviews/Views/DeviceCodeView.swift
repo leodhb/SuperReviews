@@ -29,8 +29,8 @@ struct DeviceCodeView: View {
             // Steps
             VStack(alignment: .leading, spacing: 12) {
                 StepRow(number: "1", text: "Copy your code (click the button below)")
-                StepRow(number: "2", text: "Click 'Open GitHub' and paste the code")
-                StepRow(number: "3", text: "Click 'Authorize SuperReviews'")
+                StepRow(number: "2", text: "Click on 'Open GitHub & Authorize' and paste the code")
+                StepRow(number: "3", text: "Click on 'Authorize SuperReviews'")
             }
             .padding(.horizontal, 28)
             .padding(.bottom, 20)
