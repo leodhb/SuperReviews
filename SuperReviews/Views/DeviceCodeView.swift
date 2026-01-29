@@ -82,7 +82,7 @@ struct DeviceCodeView: View {
                      Text("\"Organization access\"")
                         .fontWeight(.medium)
                         .foregroundColor(.primary) +
-                     Text(" - it's not needed.")
+                     Text(" step - it's not needed.")
                         .foregroundColor(.secondary))
                     .font(.system(size: 11))
                     .multilineTextAlignment(.center)
