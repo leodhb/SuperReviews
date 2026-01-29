@@ -5,7 +5,7 @@ macOS menu bar app for tracking GitHub pull requests that need your review.
 ## What it does
 
 - Shows PRs waiting for your review in the menu bar
-- Polls GitHub API every 5 minutes
+- Polls GitHub API every 60 seconds
 - Opens PRs directly in your browser
 - Filter by repositories if you want
 
