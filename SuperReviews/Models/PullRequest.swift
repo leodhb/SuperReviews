@@ -8,10 +8,7 @@ struct PullRequest: Codable, Sendable {
     let author: String
     let url: String
     let updatedAt: String
-}
-
-// Nonisolated Codable conformance
-extension PullRequest: Codable {
+    
     enum CodingKeys: String, CodingKey {
         case id
         case number
@@ -24,14 +21,11 @@ extension PullRequest: Codable {
 }
 
 // GitHub API Response Models
-struct GitHubSearchResponse: Sendable {
+struct GitHubSearchResponse: Codable, Sendable {
     let items: [GitHubIssue]
 }
 
-// Nonisolated Codable conformance
-extension GitHubSearchResponse: Codable {}
-
-struct GitHubIssue: Sendable {
+struct GitHubIssue: Codable, Sendable {
     let id: Int
     let number: Int
     let title: String
@@ -39,10 +33,7 @@ struct GitHubIssue: Sendable {
     let updatedAt: String
     let user: GitHubUser
     let repositoryUrl: String
-}
-
-// Nonisolated Codable conformance
-extension GitHubIssue: Codable {
+    
     enum CodingKeys: String, CodingKey {
         case id
         case number
@@ -54,16 +45,11 @@ extension GitHubIssue: Codable {
     }
 }
 
-struct GitHubUser: Sendable {
+struct GitHubUser: Codable, Sendable {
     let login: String
 }
 
-// Nonisolated Codable conformance
-extension GitHubUser: Codable {}
-
-struct GitHubUserResponse: Sendable {
+struct GitHubUserResponse: Codable, Sendable {
     let login: String
 }
-// Nonisolated Codable conformance
-extension GitHubUserResponse: Codable {}
 
