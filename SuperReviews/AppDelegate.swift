@@ -291,13 +291,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.styleMask = [.titled, .closable]
         window.title = ""
         window.titlebarAppearsTransparent = true
-        window.center()
         window.isReleasedWhenClosed = false
         window.level = .floating
         
         self.deviceCodeWindow = window
         
         window.makeKeyAndOrderFront(nil)
+        window.center()
         NSApp.activate(ignoringOtherApps: true)
     }
     
@@ -392,44 +392,47 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func openRepositoryFilter() {
-        let currentRepos = config.getRepos().joined(separator: ", ")
+        let currentRepos = config.getRepos()
         
-        let alert = NSAlert()
-        alert.messageText = "Repository Filter"
-        alert.informativeText = """
-        Enter repositories to filter, separated by commas.
-        
-        Format: owner/repository
-        Example: torvalds/linux, acme/web-app
-        """
-        alert.alertStyle = .informational
-        
-        // Add app icon
-        if let icon = NSImage(named: "AppIcon") {
-            alert.icon = icon
-        }
-        
-        alert.addButton(withTitle: "OK")
-        alert.addButton(withTitle: "Cancel")
-        
-        let inputTextField = NSTextField(frame: NSRect(x: 0, y: 0, width: 400, height: 24))
-        inputTextField.stringValue = currentRepos
-        inputTextField.placeholderString = "owner/repo1, owner/repo2"
-        alert.accessoryView = inputTextField
-        
-        let response = alert.runModal()
-        
-        if response == .alertFirstButtonReturn {
-            let reposString = inputTextField.stringValue
-            let repos = reposString.split(separator: ",").map { String($0.trimmingCharacters(in: .whitespaces)) }
-            config.saveRepos(repos)
-            
-            // Refetch PRs with new filter
-            if config.hasToken() {
-                fetchPRs()
+        let contentView = RepositoryFilterView(
+            repositories: currentRepos,
+            onSave: { [weak self] repos in
+                guard let self = self else { return }
+                self.config.saveRepos(repos)
+                
+                // Refetch PRs with new filter and update menu
+                if self.config.hasToken() {
+                    self.fetchPRs()
+                    // Update menu after a short delay to ensure PRs are fetched
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        self.updateMenu()
+                    }
+                }
+                
+                // Close the window
+                self.repositoryFilterWindow?.close()
+            },
+            onCancel: { [weak self] in
+                self?.repositoryFilterWindow?.close()
             }
-        }
+        )
+        
+        let hostingController = NSHostingController(rootView: contentView)
+        
+        let window = NSWindow(contentViewController: hostingController)
+        window.styleMask = [.titled, .closable]
+        window.title = "Repository Filter"
+        window.isReleasedWhenClosed = false
+        window.level = .floating
+        
+        self.repositoryFilterWindow = window
+        
+        window.makeKeyAndOrderFront(nil)
+        window.center()
+        NSApp.activate(ignoringOtherApps: true)
     }
+    
+    var repositoryFilterWindow: NSWindow?
     
     @objc func quit() {
         NSApp.terminate(nil)

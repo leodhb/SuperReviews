@@ -60,13 +60,52 @@ class GitHubService {
         
         let repos = config.getRepos()
         
-        // Build query prefix for repo filtering
-        let prefix = repos.isEmpty ? "" : repos.map { "repo:\($0)" }.joined(separator: " ") + " "
+        // If no repos specified, fetch all PRs
+        if repos.isEmpty {
+            let query = "is:pr is:open review-requested:@me"
+            fetchWithQuery(query, token: token, completion: completion)
+            return
+        }
         
-        // Use only the most reliable query format
-        let query = "\(prefix)is:pr is:open review-requested:@me"
+        // Fetch PRs for each repo separately and merge results
+        let dispatchGroup = DispatchGroup()
+        var allPRs: [PullRequest] = []
+        var errors: [Error] = []
+        let syncQueue = DispatchQueue(label: "com.superreviews.prfetch")
         
-        fetchWithQuery(query, token: token, completion: completion)
+        for repo in repos {
+            dispatchGroup.enter()
+            let query = "repo:\(repo) is:pr is:open review-requested:@me"
+            
+            fetchWithQuery(query, token: token) { result in
+                defer { dispatchGroup.leave() }
+                
+                switch result {
+                case .success(let prs):
+                    syncQueue.async {
+                        allPRs.append(contentsOf: prs)
+                    }
+                case .failure(let error):
+                    syncQueue.async {
+                        errors.append(error)
+                    }
+                }
+            }
+        }
+        
+        dispatchGroup.notify(queue: .main) {
+            if allPRs.isEmpty && !errors.isEmpty {
+                // If we got no PRs and had errors, report the first error
+                completion(.failure(errors.first!))
+            } else {
+                // Remove duplicates based on PR ID
+                let uniquePRs = Array(Dictionary(grouping: allPRs, by: { $0.id })
+                    .compactMap { $0.value.first })
+                    .sorted { $0.updatedAt > $1.updatedAt }
+                
+                completion(.success(uniquePRs))
+            }
+        }
     }
     
     private func fetchWithQuery(_ query: String, token: String, completion: @escaping (Result<[PullRequest], Error>) -> Void) {
