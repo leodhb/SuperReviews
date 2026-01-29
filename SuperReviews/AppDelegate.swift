@@ -1,4 +1,5 @@
 import Cocoa
+import SwiftUI
 import UserNotifications
 
 class AppDelegate: NSObject, NSApplicationDelegate {
@@ -262,94 +263,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func showDeviceCodeDialog(userCode: String, verificationUri: String) {
-        let alert = NSAlert()
-        alert.messageText = "🔐 Connect to GitHub"
-        
-        // Create a more detailed and friendly message
-        let message = """
-        Follow these steps to connect:
-        
-        1️⃣ Copy your code (click the button below)
-        2️⃣ Click 'Open GitHub & Authorize' and paste the code
-        3️⃣ Click 'Authorize SuperReviews'
-        
-        ℹ️ About permissions:
-        • SuperReviews only reads your PRs (read-only access)
-        • You can skip "Organization access" - it's not needed!
-        • The app works with repos where you're requested as reviewer
-        
-        Your code:
-        """
-        
-        alert.informativeText = message
-        alert.alertStyle = .informational
-        
-        if let icon = NSImage(named: "AppIcon") {
-            alert.icon = icon
-        }
-        
-        // Create a custom view with the code in a copyable text field
-        let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 80))
-        
-        // Code display field (large, centered, copyable)
-        let codeField = NSTextField(frame: NSRect(x: 0, y: 40, width: 400, height: 32))
-        codeField.stringValue = userCode
-        codeField.isEditable = false
-        codeField.isSelectable = true
-        codeField.isBezeled = true
-        codeField.bezelStyle = .roundedBezel
-        codeField.alignment = .center
-        codeField.font = NSFont.monospacedSystemFont(ofSize: 18, weight: .bold)
-        containerView.addSubview(codeField)
-        
-        // Copy button
-        let copyButton = NSButton(frame: NSRect(x: 150, y: 5, width: 100, height: 28))
-        copyButton.title = "Copy Code"
-        copyButton.bezelStyle = .rounded
-        copyButton.target = self
-        copyButton.action = #selector(copyCodeToClipboard(_:))
-        copyButton.tag = 999 // Will store the code here
-        containerView.addSubview(copyButton)
-        
-        // Store code in a property we can access from the button action
-        self.currentDeviceCode = userCode
-        
-        alert.accessoryView = containerView
-        
-        alert.addButton(withTitle: "Open GitHub & Authorize")
-        alert.addButton(withTitle: "Cancel")
-        
-        let response = alert.runModal()
-        
-        if response == .alertFirstButtonReturn {
-            // Copy code to clipboard
-            let pasteboard = NSPasteboard.general
-            pasteboard.clearContents()
-            pasteboard.setString(userCode, forType: .string)
-            
-            // Open GitHub
-            if let url = URL(string: verificationUri) {
-                NSWorkspace.shared.open(url)
+        let contentView = DeviceCodeView(
+            userCode: userCode,
+            verificationUri: verificationUri,
+            onOpenGitHub: { [weak self] in
+                // Copy code to clipboard
+                let pasteboard = NSPasteboard.general
+                pasteboard.clearContents()
+                pasteboard.setString(userCode, forType: .string)
+                
+                // Open GitHub
+                if let url = URL(string: verificationUri) {
+                    NSWorkspace.shared.open(url)
+                }
+                
+                // Close the window
+                self?.deviceCodeWindow?.close()
+            },
+            onCancel: { [weak self] in
+                self?.deviceCodeWindow?.close()
             }
-        }
+        )
+        
+        let hostingController = NSHostingController(rootView: contentView)
+        
+        let window = NSWindow(contentViewController: hostingController)
+        window.styleMask = [.titled, .closable]
+        window.title = ""
+        window.titlebarAppearsTransparent = true
+        window.center()
+        window.isReleasedWhenClosed = false
+        window.level = .floating
+        
+        self.deviceCodeWindow = window
+        
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
     
-    var currentDeviceCode: String?
-    
-    @objc func copyCodeToClipboard(_ sender: NSButton) {
-        guard let code = currentDeviceCode else { return }
-        
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(code, forType: .string)
-        
-        // Visual feedback
-        sender.title = "✓ Copied!"
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            sender.title = "Copy Code"
-        }
-    }
+    var deviceCodeWindow: NSWindow?
     
     func validateAndSaveToken(_ token: String) {
         githubService.validateToken(token) { [weak self] result in
