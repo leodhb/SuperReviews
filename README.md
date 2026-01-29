@@ -17,7 +17,7 @@ macOS menu bar app for tracking GitHub pull requests that need your review<br>
 ## Requirements
 
 - macOS 13.5+
-- GitHub personal access token with `repo` scope
+- A GitHub account
 
 ## Download
 
@@ -33,12 +33,15 @@ open SuperReviews.xcodeproj
 
 Build with `Cmd+B`, run with `Cmd+R`.
 
+**Note:** The app uses GitHub's Device Flow for authentication - no configuration needed!
+
 ## Setup
 
 1. Launch the app
-2. Click the menu bar icon
-3. Add your GitHub token
-4. (Optional) Filter specific repos: `owner/repo1, owner/repo2`
+2. Click the menu bar icon → **"Connect with GitHub"**
+3. Authorize the app in your browser
+4. Done! The app will start monitoring your PRs
+5. (Optional) Filter specific repos in **Settings → Repository Filter**
 
 ## License
 

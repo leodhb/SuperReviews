@@ -6,6 +6,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var menu: NSMenu!
     var githubService: GitHubService!
     var notificationService: NotificationService!
+    var oauthService: OAuthService!
     var config: Config!
     var pollTimer: Timer?
     var lastPRIds: Set<Int> = []
@@ -19,6 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         config = Config()
         githubService = GitHubService(config: config)
         notificationService = NotificationService()
+        oauthService = OAuthService()
         
         // Create status bar item
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
@@ -209,46 +211,143 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     @objc func connect() {
-        // Open GitHub token creation page
-        if let url = URL(string: "https://github.com/settings/tokens/new?scopes=read:user,repo&description=SuperReviews") {
-            NSWorkspace.shared.open(url)
-        }
-        
-        // Show dialog to enter token
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            self?.promptForToken()
+        // Start Device Flow
+        oauthService.startDeviceFlow { [weak self] result in
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let codes):
+                DispatchQueue.main.async {
+                    self.showDeviceCodeDialog(userCode: codes.userCode, verificationUri: codes.verificationUri)
+                    
+                    // Start polling for token
+                    self.oauthService.pollForToken(deviceCode: codes.deviceCode) { [weak self] result in
+                        switch result {
+                        case .success(let token):
+                            self?.validateAndSaveToken(token)
+                        case .failure(let error):
+                            DispatchQueue.main.async {
+                                let alert = NSAlert()
+                                alert.messageText = "Authorization Failed"
+                                alert.informativeText = error.localizedDescription
+                                alert.alertStyle = .critical
+                                
+                                if let icon = NSImage(named: "AppIcon") {
+                                    alert.icon = icon
+                                }
+                                
+                                alert.addButton(withTitle: "OK")
+                                alert.runModal()
+                            }
+                        }
+                    }
+                }
+                
+            case .failure(let error):
+                DispatchQueue.main.async {
+                    let alert = NSAlert()
+                    alert.messageText = "Connection Failed"
+                    alert.informativeText = error.localizedDescription
+                    alert.alertStyle = .critical
+                    
+                    if let icon = NSImage(named: "AppIcon") {
+                        alert.icon = icon
+                    }
+                    
+                    alert.addButton(withTitle: "OK")
+                    alert.runModal()
+                }
+            }
         }
     }
     
-    func promptForToken() {
+    func showDeviceCodeDialog(userCode: String, verificationUri: String) {
         let alert = NSAlert()
-        alert.messageText = "Enter GitHub Token"
-        alert.informativeText = """
-        1. Create a token with 'read:user' and 'repo' scopes
-        2. Paste it here
+        alert.messageText = "🔐 Connect to GitHub"
+        
+        // Create a more detailed and friendly message
+        let message = """
+        Follow these steps to connect:
+        
+        1️⃣ Copy your code (click the button below)
+        2️⃣ Click 'Open GitHub & Authorize' and paste the code
+        3️⃣ Click 'Authorize SuperReviews'
+        
+        ℹ️ About permissions:
+        • SuperReviews only reads your PRs (read-only access)
+        • You can skip "Organization access" - it's not needed!
+        • The app works with repos where you're requested as reviewer
+        
+        Your code:
         """
+        
+        alert.informativeText = message
         alert.alertStyle = .informational
         
-        // Add app icon to dialog
         if let icon = NSImage(named: "AppIcon") {
             alert.icon = icon
         }
         
-        alert.addButton(withTitle: "OK")
-        alert.addButton(withTitle: "Cancel")
+        // Create a custom view with the code in a copyable text field
+        let containerView = NSView(frame: NSRect(x: 0, y: 0, width: 400, height: 80))
         
-        let inputTextField = NSTextField(frame: NSRect(x: 0, y: 0, width: 300, height: 24))
-        inputTextField.placeholderString = "ghp_..."
-        alert.accessoryView = inputTextField
+        // Code display field (large, centered, copyable)
+        let codeField = NSTextField(frame: NSRect(x: 0, y: 40, width: 400, height: 32))
+        codeField.stringValue = userCode
+        codeField.isEditable = false
+        codeField.isSelectable = true
+        codeField.isBezeled = true
+        codeField.bezelStyle = .roundedBezel
+        codeField.alignment = .center
+        codeField.font = NSFont.monospacedSystemFont(ofSize: 18, weight: .bold)
+        containerView.addSubview(codeField)
+        
+        // Copy button
+        let copyButton = NSButton(frame: NSRect(x: 150, y: 5, width: 100, height: 28))
+        copyButton.title = "Copy Code"
+        copyButton.bezelStyle = .rounded
+        copyButton.target = self
+        copyButton.action = #selector(copyCodeToClipboard(_:))
+        copyButton.tag = 999 // Will store the code here
+        containerView.addSubview(copyButton)
+        
+        // Store code in a property we can access from the button action
+        self.currentDeviceCode = userCode
+        
+        alert.accessoryView = containerView
+        
+        alert.addButton(withTitle: "Open GitHub & Authorize")
+        alert.addButton(withTitle: "Cancel")
         
         let response = alert.runModal()
         
         if response == .alertFirstButtonReturn {
-            let token = inputTextField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+            // Copy code to clipboard
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(userCode, forType: .string)
             
-            if !token.isEmpty {
-                validateAndSaveToken(token)
+            // Open GitHub
+            if let url = URL(string: verificationUri) {
+                NSWorkspace.shared.open(url)
             }
+        }
+    }
+    
+    var currentDeviceCode: String?
+    
+    @objc func copyCodeToClipboard(_ sender: NSButton) {
+        guard let code = currentDeviceCode else { return }
+        
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(code, forType: .string)
+        
+        // Visual feedback
+        sender.title = "✓ Copied!"
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            sender.title = "Copy Code"
         }
     }
     
@@ -296,7 +395,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     
                     let response = alert.runModal()
                     if response == .alertFirstButtonReturn {
-                        self.promptForToken()
+                        self.connect()
                     }
                 }
             }
