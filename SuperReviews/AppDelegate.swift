@@ -81,33 +81,40 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 menu.addItem(seePRsItem)
             }
             
-            // Notifications status - check current status
-            // Check notification status asynchronously and update menu
-            let notifItem = NSMenuItem(title: "🔄 Checking notifications...", action: nil, keyEquivalent: "")
-            menu.addItem(notifItem)
+            menu.addItem(NSMenuItem.separator())
+            
+            // Settings submenu
+            let settingsSubmenu = NSMenu()
+            
+            // Toggle Notifications item (with status)
+            let notifItem = NSMenuItem(title: "Toggle Notifications (Checking...)", action: #selector(toggleNotifications), keyEquivalent: "")
+            notifItem.target = self
+            settingsSubmenu.addItem(notifItem)
             
             // Update notification status asynchronously
-            notificationService.checkAuthorizationStatus { [weak self] isEnabled in
+            notificationService.checkAuthorizationStatus { isEnabled in
                 DispatchQueue.main.async {
-                    let title = isEnabled ? "🔔 Notifications ON" : "🔕 Notifications OFF - click to enable"
+                    let title = isEnabled ? "Toggle Notifications (On)" : "Toggle Notifications (Off)"
                     notifItem.title = title
-                    notifItem.action = #selector(self?.toggleNotifications)
-                    notifItem.target = self
                 }
             }
             
-            // Logout
-            menu.addItem(NSMenuItem(title: "Logout from GitHub", action: #selector(logout), keyEquivalent: ""))
+            // Repository Filter
+            settingsSubmenu.addItem(NSMenuItem(title: "Repository Filter", action: #selector(openRepositoryFilter), keyEquivalent: ""))
+            
+            let settingsItem = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
+            settingsItem.submenu = settingsSubmenu
+            menu.addItem(settingsItem)
             
             menu.addItem(NSMenuItem.separator())
+            
+            // Logout
+            menu.addItem(NSMenuItem(title: "Logout from GitHub", action: #selector(logout), keyEquivalent: ""))
         } else {
             // Not logged in
             menu.addItem(NSMenuItem(title: "Connect with GitHub", action: #selector(connect), keyEquivalent: ""))
             menu.addItem(NSMenuItem.separator())
         }
-        
-        // Settings
-        menu.addItem(NSMenuItem(title: "Settings…", action: #selector(openSettings), keyEquivalent: ""))
         
         // Quit
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(quit), keyEquivalent: "q"))
@@ -333,11 +340,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc func openSettings() {
+    @objc func openRepositoryFilter() {
         let currentRepos = config.getRepos().joined(separator: ", ")
         
         let alert = NSAlert()
-        alert.messageText = "Repositories Filter"
+        alert.messageText = "Repository Filter"
         alert.informativeText = """
         Enter repositories to filter, separated by commas.
         
