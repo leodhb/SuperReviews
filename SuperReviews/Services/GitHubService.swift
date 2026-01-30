@@ -58,22 +58,22 @@ class GitHubService {
             return
         }
         
-        let repos = config.getRepos()
+        let monitoredRepos = config.getRepos()
         
-        // If no repos specified, fetch all PRs
-        if repos.isEmpty {
+        // If no repos specified, monitor all accessible repositories
+        if monitoredRepos.isEmpty {
             let query = "is:pr is:open review-requested:@me"
             fetchWithQuery(query, token: token, completion: completion)
             return
         }
         
-        // Fetch PRs for each repo separately and merge results
+        // Fetch PRs only from monitored repos
         let dispatchGroup = DispatchGroup()
         var allPRs: [PullRequest] = []
         var errors: [Error] = []
         let syncQueue = DispatchQueue(label: "com.superreviews.prfetch")
         
-        for repo in repos {
+        for repo in monitoredRepos {
             dispatchGroup.enter()
             let query = "repo:\(repo) is:pr is:open review-requested:@me"
             

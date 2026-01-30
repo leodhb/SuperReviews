@@ -27,19 +27,19 @@ struct HelpView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.primary)
                     
-                    (Text("Your PRs might not appear if they're from ") +
-                     Text("private organization repositories").fontWeight(.medium) +
-                     Text(" that require explicit permission. GitHub doesn't grant access to these automatically, even with the ") +
-                     Text("repo").fontWeight(.medium) +
-                     Text(" scope."))
-                        .font(.system(size: 12))
+                    (Text("Your PRs might be from ") +
+                     Text("private organization repositories").fontWeight(.semibold) +
+                     Text(" that require explicit permission from GitHub. Even with the ") +
+                     Text("repo").fontWeight(.semibold) +
+                     Text(" scope, some private repos need to be added manually."))
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     
-                    (Text("Another reason is if you have a ") +
-                     Text("Repository Filter").fontWeight(.medium) +
-                     Text(" active that's excluding certain repositories."))
-                        .font(.system(size: 12))
+                    (Text("You might also have ") +
+                     Text("specific repositories in your monitored list").fontWeight(.semibold) +
+                     Text(", which will hide PRs from other repos."))
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -51,17 +51,16 @@ struct HelpView: View {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(.primary)
                     
-                    (Text("1. ") +
-                     Text("Add the repository manually").fontWeight(.medium) +
-                     Text(" in Repository Filter. This tells GitHub to grant access to that specific private repo."))
-                        .font(.system(size: 12))
+                    (Text("Add the repository manually").fontWeight(.semibold) +
+                     Text(" to your monitored list. This tells GitHub you want to track that specific private repo, and SuperReviews will start showing PRs from it."))
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                     
-                    (Text("2. ") +
-                     Text("Check your filter").fontWeight(.medium) +
-                     Text(" in Repository Filter. If it's not empty, only PRs from listed repos will appear. Clear it to see everything."))
-                        .font(.system(size: 12))
+                    (Text("If you already added repos, ") +
+                     Text("remove them from your monitored list").fontWeight(.semibold) +
+                     Text(" to see PRs from all repositories. An empty list shows everything you have access to."))
+                        .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -80,7 +79,7 @@ struct HelpView: View {
                 }
                 .keyboardShortcut(.cancelAction)
                 
-                Button("Go to Repository Filter") {
+                Button("Manage Monitored Repositories") {
                     onOpenFilter()
                 }
                 .keyboardShortcut(.defaultAction)

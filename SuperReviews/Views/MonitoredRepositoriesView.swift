@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RepositoryFilterView: View {
+struct MonitoredRepositoriesView: View {
     @State private var repositories: [String]
     @State private var newRepo: String = ""
     @State private var showError: Bool = false
@@ -19,31 +19,31 @@ struct RepositoryFilterView: View {
         VStack(spacing: 0) {
             // Header
             VStack(spacing: 10) {
-                Text("Repository Filter")
+                Text("Manage Monitored Repositories")
                     .font(.system(size: 18, weight: .semibold))
                 
                 VStack(spacing: 8) {
-                    Text("Filter which repositories to show PRs from.")
+                    Text("Add repositories you want to monitor for PRs.")
                         .font(.system(size: 13))
                         .foregroundColor(.primary)
                     
                     VStack(spacing: 4) {
                         HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
+                            Image(systemName: "eye")
                                 .font(.system(size: 11))
-                                .foregroundColor(.green)
+                                .foregroundColor(.blue)
                             
-                            Text("Empty = all your PRs")
+                            Text("Empty = monitors all repos you have access to")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
                         
                         HStack(spacing: 4) {
-                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                            Image(systemName: "list.bullet.circle.fill")
                                 .font(.system(size: 11))
                                 .foregroundColor(.orange)
                             
-                            Text("With repos = only those repos")
+                            Text("With repos = monitors only those repos")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
@@ -81,7 +81,7 @@ struct RepositoryFilterView: View {
                         }
                         .buttonStyle(.plain)
                         .disabled(newRepo.isEmpty)
-                        .help("Add repository")
+                        .help("Add repository to monitor")
                     }
                     
                     if showError {
@@ -100,12 +100,12 @@ struct RepositoryFilterView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
                         if repositories.isEmpty {
-                            Text("No Filter Active")
+                            Text("No Specific Repos")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.secondary)
                                 .textCase(.uppercase)
                         } else {
-                            Text("Active Filters (\(repositories.count))")
+                            Text("Monitored Repos (\(repositories.count))")
                                 .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.secondary)
                                 .textCase(.uppercase)
@@ -115,20 +115,20 @@ struct RepositoryFilterView: View {
                     
                     if repositories.isEmpty {
                         VStack(spacing: 10) {
-                            Image(systemName: "checkmark.circle")
+                            Image(systemName: "eye")
                                 .font(.system(size: 28))
-                                .foregroundColor(.green)
+                                .foregroundColor(.blue)
                             
-                            Text("Showing all your PRs")
+                            Text("Monitoring all accessible repos")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.primary)
                             
                             VStack(spacing: 4) {
-                                Text("Add repositories above to filter which ones appear")
+                                Text("PRs from any repository you have GitHub access to will appear")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                 
-                                Text("(only listed repos will be shown)")
+                                Text("(add specific repos above to monitor only those)")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                                     .opacity(0.8)
@@ -139,16 +139,16 @@ struct RepositoryFilterView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     } else {
-                        VStack(spacing: 6) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.orange)
-                                Text("Only PRs from these repositories will be shown")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.orange)
-                            }
-                            .padding(.bottom, 4)
+                    VStack(spacing: 6) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "eye.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                            Text("Only monitoring these repositories")
+                                .font(.system(size: 10))
+                                .foregroundColor(.orange)
+                        }
+                        .padding(.bottom, 4)
                             
                             List {
                                 ForEach(repositories, id: \.self) { repo in
@@ -166,7 +166,7 @@ struct RepositoryFilterView: View {
                                                 .foregroundColor(.secondary)
                                         }
                                         .buttonStyle(.plain)
-                                        .help("Remove filter")
+                                        .help("Remove from monitored list")
                                     }
                                     .padding(.vertical, 2)
                                 }
@@ -248,9 +248,9 @@ struct RepositoryFilterView: View {
 }
 
 // Preview
-struct RepositoryFilterView_Previews: PreviewProvider {
+struct MonitoredRepositoriesView_Previews: PreviewProvider {
     static var previews: some View {
-        RepositoryFilterView(
+        MonitoredRepositoriesView(
             repositories: ["torvalds/linux", "apple/swift"],
             onSave: { _ in },
             onCancel: {}

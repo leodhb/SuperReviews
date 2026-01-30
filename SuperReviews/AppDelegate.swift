@@ -1,6 +1,7 @@
 import Cocoa
 import SwiftUI
 import UserNotifications
+import ServiceManagement
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
@@ -110,8 +111,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
             }
             
-            // Repository Filter
-            settingsSubmenu.addItem(NSMenuItem(title: "Repository Filter", action: #selector(openRepositoryFilter), keyEquivalent: ""))
+            // Launch at Login
+            let launchAtLoginTitle = isLaunchAtLoginEnabled() ? "Disable Launch at Login" : "Enable Launch at Login"
+            settingsSubmenu.addItem(NSMenuItem(title: launchAtLoginTitle, action: #selector(toggleLaunchAtLogin), keyEquivalent: ""))
+            
+            // Manage Monitored Repositories
+            settingsSubmenu.addItem(NSMenuItem(title: "Manage Monitored Repositories", action: #selector(openMonitoredRepositories), keyEquivalent: ""))
             
             let settingsItem = NSMenuItem(title: "Settings", action: nil, keyEquivalent: "")
             settingsItem.submenu = settingsSubmenu
@@ -399,16 +404,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    @objc func openRepositoryFilter() {
+    func isLaunchAtLoginEnabled() -> Bool {
+        if #available(macOS 13.0, *) {
+            return SMAppService.mainApp.status == .enabled
+        }
+        return false
+    }
+    
+    @objc func toggleLaunchAtLogin() {
+        if #available(macOS 13.0, *) {
+            do {
+                if SMAppService.mainApp.status == .enabled {
+                    try SMAppService.mainApp.unregister()
+                    showAlert(title: "Launch at Login Disabled", message: "SuperReviews will no longer start automatically when you log in.")
+                } else {
+                    try SMAppService.mainApp.register()
+                    showAlert(title: "Launch at Login Enabled", message: "SuperReviews will now start automatically when you log in.")
+                }
+                updateMenu()
+            } catch {
+                showAlert(title: "Error", message: "Failed to update Launch at Login setting: \(error.localizedDescription)")
+            }
+        } else {
+            showAlert(title: "Not Available", message: "Launch at Login requires macOS 13.0 or later.")
+        }
+    }
+    
+    @objc func openMonitoredRepositories() {
         let currentRepos = config.getRepos()
         
-        let contentView = RepositoryFilterView(
+        let contentView = MonitoredRepositoriesView(
             repositories: currentRepos,
             onSave: { [weak self] repos in
                 guard let self = self else { return }
                 self.config.saveRepos(repos)
                 
-                // Refetch PRs with new filter and update menu
+                // Refetch PRs with updated monitored repos
                 if self.config.hasToken() {
                     self.fetchPRs()
                     // Update menu after a short delay to ensure PRs are fetched
@@ -418,10 +449,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 }
                 
                 // Close the window
-                self.repositoryFilterWindow?.close()
+                self.monitoredReposWindow?.close()
             },
             onCancel: { [weak self] in
-                self?.repositoryFilterWindow?.close()
+                self?.monitoredReposWindow?.close()
             }
         )
         
@@ -429,25 +460,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let window = NSWindow(contentViewController: hostingController)
         window.styleMask = [.titled, .closable]
-        window.title = "Repository Filter"
+        window.title = "Manage Monitored Repositories"
         window.isReleasedWhenClosed = false
         window.level = .floating
         
-        self.repositoryFilterWindow = window
+        self.monitoredReposWindow = window
         
         window.makeKeyAndOrderFront(nil)
         window.center()
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    var repositoryFilterWindow: NSWindow?
+    var monitoredReposWindow: NSWindow?
     var helpWindow: NSWindow?
     
     @objc func showHelp() {
         let contentView = HelpView(
             onOpenFilter: { [weak self] in
                 self?.helpWindow?.close()
-                self?.openRepositoryFilter()
+                self?.openMonitoredRepositories()
             },
             onClose: { [weak self] in
                 self?.helpWindow?.close()
@@ -467,6 +498,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.makeKeyAndOrderFront(nil)
         window.center()
         NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    func showAlert(title: String, message: String, style: NSAlert.Style = .informational) {
+        let alert = NSAlert()
+        alert.messageText = title
+        alert.informativeText = message
+        alert.alertStyle = style
+        
+        if let icon = NSImage(named: "AppIcon") {
+            alert.icon = icon
+        }
+        
+        alert.addButton(withTitle: "OK")
+        alert.runModal()
     }
     
     @objc func quit() {

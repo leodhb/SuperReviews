@@ -12,7 +12,7 @@ macOS menu bar app for tracking GitHub pull requests that need your review<br>
 - Shows PRs waiting for your review in the menu bar
 - Polls GitHub API every 60 seconds
 - Opens PRs directly in your browser
-- Filter by repositories if you want
+- Monitor specific repositories or all at once
 
 ## Requirements
 
@@ -39,9 +39,11 @@ Build with `Cmd+B`, run with `Cmd+R`.
 
 1. Launch the app
 2. Click the menu bar icon → **"Connect with GitHub"**
-3. Authorize the app in your browser
+3. Authorize the app in your browser (you can skip "Organization access")
 4. Done! The app will start monitoring your PRs
-5. (Optional) Filter specific repos in **Settings → Repository Filter**
+5. (Optional) Add specific repos in **Settings → Manage Monitored Repositories**
+
+**Note:** SuperReviews monitors repositories you have access to. For private organization repositories that need explicit permission, add them manually in settings.
 
 ## License
 

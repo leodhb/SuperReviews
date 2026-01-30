@@ -4,7 +4,7 @@ class Config {
     private let defaults = UserDefaults.standard
     private let tokenKey = "github_token"
     private let usernameKey = "github_username"
-    private let reposKey = "repositories"
+    private let reposKey = "monitored_repositories"
     
     func hasToken() -> Bool {
         return getToken() != nil
@@ -21,6 +21,7 @@ class Config {
     func deleteToken() {
         defaults.removeObject(forKey: tokenKey)
         defaults.removeObject(forKey: usernameKey)
+        defaults.removeObject(forKey: reposKey)
     }
     
     func getUsername() -> String? {
