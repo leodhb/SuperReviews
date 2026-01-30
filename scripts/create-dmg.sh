@@ -25,7 +25,7 @@ cd "$(dirname "$0")/.."
 PROJECT_ROOT=$(pwd)
 
 # Get current version from Xcode project
-VERSION=$(grep -m 1 "MARKETING_VERSION" SuperReviews.xcodeproj/project.pbxproj | awk -F' = ' '{print $2}' | tr -d ';' | tr -d ' ')
+VERSION=$(grep -m 1 "MARKETING_VERSION" Nag.xcodeproj/project.pbxproj | awk -F' = ' '{print $2}' | tr -d ';' | tr -d ' ')
 VERSION=${VERSION:-"1.0.0"}
 echo -e "${BLUE}📌 Version: ${VERSION}${NC}"
 
@@ -34,8 +34,8 @@ if command -v xcodebuild &> /dev/null && xcodebuild -version &> /dev/null; then
     echo -e "${BLUE}🔨 Building Release version...${NC}"
     
     xcodebuild clean build \
-        -project SuperReviews.xcodeproj \
-        -scheme SuperReviews \
+        -project Nag.xcodeproj \
+        -scheme Nag \
         -configuration Release \
         -quiet || {
             echo -e "${YELLOW}⚠️  xcodebuild failed, looking for existing build...${NC}"
@@ -48,7 +48,7 @@ fi
 # Find the built app (prefer Release, fallback to Debug)
 echo -e "${BLUE}🔍 Looking for built app...${NC}"
 
-APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "SuperReviews.app" -type d 2>/dev/null | \
+APP_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "Nag.app" -type d 2>/dev/null | \
     while read app; do
         size=$(du -sk "$app" 2>/dev/null | cut -f1)
         if [ "$size" -gt 10 ]; then
@@ -71,7 +71,7 @@ BUILD_TYPE=$(basename $(dirname "$APP_PATH"))
 echo -e "${GREEN}✅ Found: ${BUILD_TYPE} build${NC}"
 
 # Output DMG name
-DMG_NAME="SuperReviews-${VERSION}.dmg"
+DMG_NAME="Nag-${VERSION}.dmg"
 OUTPUT_PATH="${PROJECT_ROOT}/${DMG_NAME}"
 
 # Remove old DMG if exists
@@ -84,12 +84,12 @@ echo -e "${BLUE}📦 Creating DMG: ${DMG_NAME}${NC}"
 
 # Create DMG with horizontally aligned icons
 create-dmg \
-  --volname "SuperReviews Installer" \
+  --volname "Nag Installer" \
   --window-pos 200 120 \
   --window-size 660 400 \
   --icon-size 160 \
-  --icon "SuperReviews.app" 180 170 \
-  --hide-extension "SuperReviews.app" \
+  --icon "Nag.app" 180 170 \
+  --hide-extension "Nag.app" \
   --app-drop-link 480 170 \
   --hdiutil-quiet \
   "$OUTPUT_PATH" \

@@ -30,7 +30,7 @@ struct DeviceCodeView: View {
             VStack(alignment: .leading, spacing: 12) {
                 StepRow(number: "1", text: "Copy your code (click the button below)")
                 StepRow(number: "2", text: "Click on 'Open GitHub & Authorize' and paste the code")
-                StepRow(number: "3", text: "Click on 'Authorize SuperReviews'")
+                StepRow(number: "3", text: "Click on 'Authorize Nag'")
             }
             .padding(.horizontal, 28)
             .padding(.bottom, 20)
@@ -87,7 +87,7 @@ struct DeviceCodeView: View {
                     .font(.system(size: 11))
                     .multilineTextAlignment(.center)
                     
-                    Text("SuperReviews uses the 'repo' scope (GitHub limitation),")
+                    Text("Nag uses the 'repo' scope (GitHub limitation),")
                         .font(.system(size: 11))
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)

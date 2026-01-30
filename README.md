@@ -1,9 +1,11 @@
-# SuperReviews
+# Nag
+
+**Stop ignoring PR reviews.**
 
 macOS menu bar app for tracking GitHub pull requests that need your review<br>
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 26 42" src="https://github.com/user-attachments/assets/8917480d-ee79-4d01-b0ce-6e9953c02c87" />
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 02 05" src="https://github.com/user-attachments/assets/97a59792-0b7c-42b6-89ae-d8d932e46ae1" />
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 04 52" src="https://github.com/user-attachments/assets/7943ec7c-40a8-4b68-ab11-41809d4ba98b" />
+<img width="300" alt="Captura de Tela 2026-01-29 às 18 26 42" src="https://github.com/user-attachments/assets/8917480d-ee79-4d01-b0ce-6e9953c02c87" />
+<img width="300" alt="Captura de Tela 2026-01-29 às 18 02 05" src="https://github.com/user-attachments/assets/97a59792-0b7c-42b6-89ae-d8d932e46ae1" />
+<img width="300" alt="Captura de Tela 2026-01-29 às 18 04 52" src="https://github.com/user-attachments/assets/7943ec7c-40a8-4b68-ab11-41809d4ba98b" />
 
 
 ## What it does
@@ -21,14 +23,14 @@ macOS menu bar app for tracking GitHub pull requests that need your review<br>
 
 ## Download
 
-Get the latest release from the [Releases](https://github.com/leodhb/SuperReviews/releases) page.
+Get the latest release from the [Releases](https://github.com/leodhb/Nag/releases) page.
 
 ## Building from source
 
 ```bash
-git clone https://github.com/leodhb/SuperReviews.git
-cd SuperReviews
-open SuperReviews.xcodeproj
+git clone https://github.com/leodhb/Nag.git
+cd Nag
+open Nag.xcodeproj
 ```
 
 Build with `Cmd+B`, run with `Cmd+R`.
@@ -43,7 +45,7 @@ Build with `Cmd+B`, run with `Cmd+R`.
 4. Done! The app will start monitoring your PRs
 5. (Optional) Add specific repos in **Settings → Manage Monitored Repositories**
 
-**Note:** SuperReviews monitors repositories you have access to. For private organization repositories that need explicit permission, add them manually in settings.
+**Note:** Nag monitors repositories you have access to. For private organization repositories that need explicit permission, add them manually in settings.
 
 ## License
 

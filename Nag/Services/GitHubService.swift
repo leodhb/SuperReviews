@@ -25,7 +25,7 @@ class GitHubService {
         var request = URLRequest(url: url)
         request.setValue("token \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
-        request.setValue("SuperReviews/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Nag/1.0", forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {
@@ -71,7 +71,7 @@ class GitHubService {
         let dispatchGroup = DispatchGroup()
         var allPRs: [PullRequest] = []
         var errors: [Error] = []
-        let syncQueue = DispatchQueue(label: "com.superreviews.prfetch")
+        let syncQueue = DispatchQueue(label: "com.nag.prfetch")
         
         for repo in monitoredRepos {
             dispatchGroup.enter()
@@ -120,7 +120,7 @@ class GitHubService {
         var request = URLRequest(url: url)
         request.setValue("token \(token)", forHTTPHeaderField: "Authorization")
         request.setValue("application/vnd.github.v3+json", forHTTPHeaderField: "Accept")
-        request.setValue("SuperReviews/1.0", forHTTPHeaderField: "User-Agent")
+        request.setValue("Nag/1.0", forHTTPHeaderField: "User-Agent")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             if let error = error {

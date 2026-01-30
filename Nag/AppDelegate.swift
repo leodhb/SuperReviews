@@ -37,7 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             // Set title (text after icon)
-            button.title = "SuperReviews"
+            button.title = "Nag"
         }
         
         // Request notification permission
@@ -340,7 +340,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     
                     let alert = NSAlert()
                     alert.messageText = "Success!"
-                    alert.informativeText = "Connected as @\(username)\n\nSuperReviews is now monitoring your PRs."
+                    alert.informativeText = "Connected as @\(username)\n\nNag is now monitoring your PRs."
                     alert.alertStyle = .informational
                     
                     // Add app icon
@@ -384,7 +384,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         isFirstFetch = true
         
         if let button = statusItem.button {
-            button.title = "SuperReviews"
+            button.title = "Nag"
         }
         
         updateMenu()
@@ -405,7 +405,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     @objc func toggleNotifications() {
         // Open System Settings to notifications
-        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications?id=com.superreviews.app") {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.notifications?id=com.nag.app") {
             NSWorkspace.shared.open(url)
         }
         
@@ -427,10 +427,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             do {
                 if SMAppService.mainApp.status == .enabled {
                     try SMAppService.mainApp.unregister()
-                    showAlert(title: "Launch at Login Disabled", message: "SuperReviews will no longer start automatically when you log in.")
+                    showAlert(title: "Launch at Login Disabled", message: "Nag will no longer start automatically when you log in.")
                 } else {
                     try SMAppService.mainApp.register()
-                    showAlert(title: "Launch at Login Enabled", message: "SuperReviews will now start automatically when you log in.")
+                    showAlert(title: "Launch at Login Enabled", message: "Nag will now start automatically when you log in.")
                 }
                 updateMenu()
             } catch {

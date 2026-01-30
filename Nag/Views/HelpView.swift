@@ -52,7 +52,7 @@ struct HelpView: View {
                         .foregroundColor(.primary)
                     
                     (Text("Add the repository manually").fontWeight(.semibold) +
-                     Text(" to your monitored list. This tells GitHub you want to track that specific private repo, and SuperReviews will start showing PRs from it."))
+                     Text(" to your monitored list. This tells GitHub you want to track that specific private repo, and Nag will start showing PRs from it."))
                         .font(.system(size: 13))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
