@@ -1,16 +1,50 @@
 import SwiftUI
 
+struct RepoInput: Identifiable {
+    let id = UUID()
+    var value: String
+}
+
+struct RepoInputRow: View {
+    @Binding var value: String
+    let isInvalid: Bool
+    let showRemove: Bool
+    let onRemove: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            TextField("owner/repository", text: $value)
+                .textFieldStyle(.roundedBorder)
+                .font(.system(size: 13))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 5)
+                        .stroke(isInvalid ? Color.red : Color.clear, lineWidth: 1)
+                )
+            
+            Button(action: onRemove) {
+                Image(systemName: "minus.circle.fill")
+                    .font(.system(size: 18))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help(showRemove ? "Remove" : "Clear")
+        }
+    }
+}
+
 struct MonitoredRepositoriesView: View {
-    @State private var repositories: [String]
-    @State private var newRepo: String = ""
+    @State private var repoInputs: [RepoInput]
     @State private var showError: Bool = false
-    @State private var errorMessage: String = ""
+    @State private var invalidIDs: Set<UUID> = []
     
     let onSave: ([String]) -> Void
     let onCancel: () -> Void
     
     init(repositories: [String], onSave: @escaping ([String]) -> Void, onCancel: @escaping () -> Void) {
-        _repositories = State(initialValue: repositories)
+        let inputs = repositories.isEmpty 
+            ? [RepoInput(value: "")] 
+            : repositories.map { RepoInput(value: $0) }
+        _repoInputs = State(initialValue: inputs)
         self.onSave = onSave
         self.onCancel = onCancel
     }
@@ -22,35 +56,25 @@ struct MonitoredRepositoriesView: View {
                 Text("Manage Monitored Repositories")
                     .font(.system(size: 18, weight: .semibold))
                 
-                VStack(spacing: 8) {
-                    Text("Add repositories you want to monitor for PRs.")
-                        .font(.system(size: 13))
-                        .foregroundColor(.primary)
+                VStack(spacing: 4) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "eye")
+                            .font(.system(size: 11))
+                            .foregroundColor(.blue)
+                        Text("Empty = monitors all repos you have access to")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
+                    }
                     
-                    VStack(spacing: 4) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "eye")
-                                .font(.system(size: 11))
-                                .foregroundColor(.blue)
-                            
-                            Text("Empty = monitors all repos you have access to")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        HStack(spacing: 4) {
-                            Image(systemName: "list.bullet.circle.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(.orange)
-                            
-                            Text("With repos = monitors only those repos")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundColor(.secondary)
-                        }
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet.circle.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.orange)
+                        Text("With repos = monitors only those repos")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(.secondary)
                     }
                 }
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 30)
             }
             .padding(.top, 20)
             .padding(.bottom, 16)
@@ -58,124 +82,45 @@ struct MonitoredRepositoriesView: View {
             Divider()
             
             // Content
-            VStack(alignment: .leading, spacing: 16) {
-                // Add repository section
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Add Repository")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.secondary)
-                        .textCase(.uppercase)
-                    
-                    HStack(spacing: 6) {
-                        TextField("owner/repository", text: $newRepo)
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 13))
-                            .onSubmit {
-                                addRepository()
-                            }
-                        
-                        Button(action: addRepository) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(Color.accentColor)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newRepo.isEmpty)
-                        .help("Add repository to monitor")
-                    }
-                    
-                    if showError {
-                        HStack(spacing: 6) {
-                            Image(systemName: "exclamationmark.circle.fill")
-                                .font(.system(size: 12))
-                            Text(errorMessage)
-                                .font(.system(size: 11))
-                        }
-                        .foregroundColor(.red)
-                        .padding(.top, 4)
-                    }
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Repositories")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                
+                // Repository inputs
+                ForEach($repoInputs) { $input in
+                    RepoInputRow(
+                        value: $input.value,
+                        isInvalid: invalidIDs.contains(input.id),
+                        showRemove: repoInputs.count > 1,
+                        onRemove: { removeOrClear(id: input.id) }
+                    )
                 }
                 
-                // List section
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        if repositories.isEmpty {
-                            Text("No Specific Repos")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                        } else {
-                            Text("Monitored Repos (\(repositories.count))")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                        }
-                        Spacer()
+                // Add repository button
+                Button(action: addInput) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 14))
+                        Text("Add repository")
+                            .font(.system(size: 13))
                     }
-                    
-                    if repositories.isEmpty {
-                        VStack(spacing: 10) {
-                            Image(systemName: "eye")
-                                .font(.system(size: 28))
-                                .foregroundColor(.blue)
-                            
-                            Text("Monitoring all accessible repos")
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.primary)
-                            
-                            VStack(spacing: 4) {
-                                Text("PRs from any repository you have GitHub access to will appear")
-                                    .font(.system(size: 11))
-                                    .foregroundColor(.secondary)
-                                
-                                Text("(add specific repos above to monitor only those)")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(.secondary)
-                                    .opacity(0.8)
-                            }
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
-                    } else {
-                    VStack(spacing: 6) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "eye.circle.fill")
-                                .font(.system(size: 11))
-                                .foregroundColor(.orange)
-                            Text("Only monitoring these repositories")
-                                .font(.system(size: 10))
-                                .foregroundColor(.orange)
-                        }
-                        .padding(.bottom, 4)
-                            
-                            List {
-                                ForEach(repositories, id: \.self) { repo in
-                                    HStack(spacing: 8) {
-                                        Text(repo)
-                                            .font(.system(size: 13))
-                                        
-                                        Spacer()
-                                        
-                                        Button(action: {
-                                            removeRepository(repo)
-                                        }) {
-                                            Image(systemName: "minus.circle")
-                                                .font(.system(size: 14))
-                                                .foregroundColor(.secondary)
-                                        }
-                                        .buttonStyle(.plain)
-                                        .help("Remove from monitored list")
-                                    }
-                                    .padding(.vertical, 2)
-                                }
-                            }
-                            .listStyle(.inset)
-                            .scrollContentBackground(.visible)
-                            .frame(height: 160)
-                        }
+                }
+                .buttonStyle(.plain)
+                .foregroundColor(.accentColor)
+                .padding(.top, 4)
+                
+                // Error message
+                if showError {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                            .font(.system(size: 12))
+                        Text("All fields must be empty or use format: owner/repository")
+                            .font(.system(size: 11))
                     }
+                    .foregroundColor(.red)
+                    .padding(.top, 4)
                 }
             }
             .padding(20)
@@ -192,7 +137,7 @@ struct MonitoredRepositoriesView: View {
                 .keyboardShortcut(.cancelAction)
                 
                 Button("Save") {
-                    onSave(repositories)
+                    validateAndSave()
                 }
                 .keyboardShortcut(.defaultAction)
                 .buttonStyle(.borderedProminent)
@@ -200,54 +145,56 @@ struct MonitoredRepositoriesView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
-        .frame(width: 500, height: 500)
+        .frame(width: 420)
+        .fixedSize(horizontal: false, vertical: true)
         .background(Color(NSColor.windowBackgroundColor))
     }
     
-    private func addRepository() {
-        let trimmed = newRepo.trimmingCharacters(in: .whitespaces)
-        
-        // Validate format
-        guard !trimmed.isEmpty else { return }
-        
-        let components = trimmed.split(separator: "/")
-        guard components.count == 2,
-              !components[0].isEmpty,
-              !components[1].isEmpty else {
-            showError = true
-            errorMessage = "Invalid format. Use: owner/repository"
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                showError = false
+    private func addInput() {
+        repoInputs.append(RepoInput(value: ""))
+    }
+    
+    private func removeOrClear(id: UUID) {
+        if repoInputs.count == 1 {
+            if let index = repoInputs.firstIndex(where: { $0.id == id }) {
+                repoInputs[index].value = ""
             }
-            return
+        } else {
+            repoInputs.removeAll { $0.id == id }
         }
-        
-        // Check if already exists
-        if repositories.contains(trimmed) {
-            showError = true
-            errorMessage = "Repository already in the list"
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                showError = false
-            }
-            return
-        }
-        
-        // Add repository
-        withAnimation(.easeInOut(duration: 0.2)) {
-            repositories.append(trimmed)
-        }
-        newRepo = ""
+        invalidIDs.remove(id)
         showError = false
     }
     
-    private func removeRepository(_ repo: String) {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            repositories.removeAll { $0 == repo }
+    private func isValidRepo(_ repo: String) -> Bool {
+        let trimmed = repo.trimmingCharacters(in: .whitespaces)
+        if trimmed.isEmpty { return true }
+        let parts = trimmed.split(separator: "/")
+        return parts.count == 2 && !parts[0].isEmpty && !parts[1].isEmpty
+    }
+    
+    private func validateAndSave() {
+        invalidIDs.removeAll()
+        
+        for input in repoInputs {
+            if !isValidRepo(input.value) {
+                invalidIDs.insert(input.id)
+            }
         }
+        
+        if !invalidIDs.isEmpty {
+            showError = true
+            return
+        }
+        
+        let validRepos = repoInputs
+            .map { $0.value.trimmingCharacters(in: .whitespaces) }
+            .filter { !$0.isEmpty }
+        
+        onSave(validRepos)
     }
 }
 
-// Preview
 struct MonitoredRepositoriesView_Previews: PreviewProvider {
     static var previews: some View {
         MonitoredRepositoriesView(
