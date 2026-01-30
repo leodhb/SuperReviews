@@ -13,6 +13,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var pollTimer: Timer?
     var lastPRIds: Set<Int> = []
     var currentPRs: [PullRequest] = []
+    var isFirstFetch: Bool = true
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Set activation policy to accessory (menu bar only, no dock icon)
@@ -140,11 +141,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func startPolling() {
         // Fetch immediately
-        fetchPRs()
+        fetchPRs(shouldNotify: true)
         
         // Then poll every 60 seconds
         pollTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
-            self?.fetchPRs()
+            self?.fetchPRs(shouldNotify: true)
         }
     }
     
@@ -164,13 +165,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
     
-    func fetchPRs() {
+    func fetchPRs(shouldNotify: Bool) {
         githubService.fetchPRs { [weak self] result in
             guard let self = self else { return }
             
             switch result {
             case .success(let prs):
-                print("✅ Fetched \(prs.count) PRs")
+                print("✅ Fetched \(prs.count) PRs (isFirstFetch: \(self.isFirstFetch), shouldNotify: \(shouldNotify))")
                 
                 // Store PRs for menu
                 self.currentPRs = prs
@@ -193,8 +194,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 let currentIds = Set(prs.map { $0.id })
                 let newPRs = prs.filter { !self.lastPRIds.contains($0.id) }
                 
-                if !newPRs.isEmpty && !self.lastPRIds.isEmpty {
-                    // Send notifications for new PRs
+                // Send notifications for new PRs (skip on first fetch or when explicitly disabled)
+                let shouldSendNotifications = shouldNotify && !self.isFirstFetch
+                
+                if !newPRs.isEmpty && shouldSendNotifications {
+                    print("🔔 Notifying about \(newPRs.count) new PR(s): \(newPRs.map { "#\($0.number)" }.joined(separator: ", "))")
                     for pr in newPRs {
                         self.notificationService.sendNotification(
                             title: "🔔 New PR Review Request",
@@ -202,9 +206,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             url: pr.url
                         )
                     }
+                } else if !newPRs.isEmpty && self.isFirstFetch {
+                    print("ℹ️ First fetch - skipping notifications for \(newPRs.count) PR(s)")
+                } else if !newPRs.isEmpty && !shouldNotify {
+                    print("ℹ️ Notifications disabled for this fetch (\(newPRs.count) PR(s))")
                 }
                 
                 self.lastPRIds = currentIds
+                self.isFirstFetch = false
                 
                 // Update menu
                 DispatchQueue.main.async {
@@ -371,6 +380,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         config.deleteToken()
         stopPolling()
         lastPRIds.removeAll()
+        currentPRs.removeAll()
+        isFirstFetch = true
         
         if let button = statusItem.button {
             button.title = "SuperReviews"
@@ -439,9 +450,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 guard let self = self else { return }
                 self.config.saveRepos(repos)
                 
-                // Refetch PRs with updated monitored repos
+                // Refetch PRs with updated monitored repos (explicitly disable notifications)
                 if self.config.hasToken() {
-                    self.fetchPRs()
+                    self.fetchPRs(shouldNotify: false)
                     // Update menu after a short delay to ensure PRs are fetched
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         self.updateMenu()
