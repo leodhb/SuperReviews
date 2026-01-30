@@ -3,10 +3,6 @@
 **Stop ignoring PR reviews.**
 
 macOS menu bar app for tracking GitHub pull requests that need your review<br>
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 26 42" src="https://github.com/user-attachments/assets/8917480d-ee79-4d01-b0ce-6e9953c02c87" />
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 02 05" src="https://github.com/user-attachments/assets/97a59792-0b7c-42b6-89ae-d8d932e46ae1" />
-<img width="300" alt="Captura de Tela 2026-01-29 às 18 04 52" src="https://github.com/user-attachments/assets/7943ec7c-40a8-4b68-ab11-41809d4ba98b" />
-
 
 ## What it does
 
