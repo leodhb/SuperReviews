@@ -23,17 +23,17 @@ struct RepositoryFilterView: View {
                     .font(.system(size: 18, weight: .semibold))
                 
                 VStack(spacing: 8) {
-                    Text("Choose which repositories to monitor.")
+                    Text("Filter which repositories to show PRs from.")
                         .font(.system(size: 13))
                         .foregroundColor(.primary)
                     
                     VStack(spacing: 4) {
                         HStack(spacing: 4) {
-                            Image(systemName: "info.circle.fill")
+                            Image(systemName: "checkmark.circle.fill")
                                 .font(.system(size: 11))
-                                .foregroundColor(.blue)
+                                .foregroundColor(.green)
                             
-                            Text("Empty = all public PRs")
+                            Text("Empty = all your PRs")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
@@ -43,7 +43,7 @@ struct RepositoryFilterView: View {
                                 .font(.system(size: 11))
                                 .foregroundColor(.orange)
                             
-                            Text("With repos = only those repos (public or private)")
+                            Text("With repos = only those repos")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundColor(.secondary)
                         }
@@ -119,16 +119,16 @@ struct RepositoryFilterView: View {
                                 .font(.system(size: 28))
                                 .foregroundColor(.green)
                             
-                            Text("Showing all public PRs")
+                            Text("Showing all your PRs")
                                 .font(.system(size: 13, weight: .medium))
                                 .foregroundColor(.primary)
                             
                             VStack(spacing: 4) {
-                                Text("Add repositories above to create an exclusive filter")
+                                Text("Add repositories above to filter which ones appear")
                                     .font(.system(size: 11))
                                     .foregroundColor(.secondary)
                                 
-                                Text("(you can mix public and private repos)")
+                                Text("(only listed repos will be shown)")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                                     .opacity(0.8)

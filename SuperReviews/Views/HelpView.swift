@@ -21,60 +21,49 @@ struct HelpView: View {
             Divider()
             
             // Content
-            VStack(alignment: .leading, spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
-                            .font(.system(size: 14))
-                        Text("Public repositories")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
+            VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Possible Reasons")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primary)
                     
-                    Text("PRs from public repositories are automatically tracked when you're assigned as a reviewer.")
+                    (Text("Your PRs might not appear if they're from ") +
+                     Text("private organization repositories").fontWeight(.medium) +
+                     Text(" that require explicit permission. GitHub doesn't grant access to these automatically, even with the ") +
+                     Text("repo").fontWeight(.medium) +
+                     Text(" scope."))
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    
+                    (Text("Another reason is if you have a ") +
+                     Text("Repository Filter").fontWeight(.medium) +
+                     Text(" active that's excluding certain repositories."))
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
                 
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "lock.fill")
-                            .foregroundColor(.orange)
-                            .font(.system(size: 14))
-                        Text("Private repositories")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
+                Divider()
+                
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Possible Solutions")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.primary)
                     
-                    Text("GitHub requires explicit permission for private repos. Add them manually in Repository Filter.")
+                    (Text("1. ") +
+                     Text("Add the repository manually").fontWeight(.medium) +
+                     Text(" in Repository Filter. This tells GitHub to grant access to that specific private repo."))
                         .font(.system(size: 12))
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
-                }
-                
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.system(size: 14))
-                        Text("How the filter works")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
                     
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("• Empty filter = shows all public PRs")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                        
-                        Text("• With repos listed = shows only those repos (public or private)")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                        
-                        Text("• To see public + private = add both to the filter")
-                            .font(.system(size: 12))
-                            .foregroundColor(.secondary)
-                    }
-                    .fixedSize(horizontal: false, vertical: true)
+                    (Text("2. ") +
+                     Text("Check your filter").fontWeight(.medium) +
+                     Text(" in Repository Filter. If it's not empty, only PRs from listed repos will appear. Clear it to see everything."))
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             .padding(.horizontal, 32)
