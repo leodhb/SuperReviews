@@ -17,10 +17,55 @@ struct RepositoryFilterView: View {
     
     var body: some View {
         VStack(spacing: 0) {
+            // Header
+            VStack(spacing: 10) {
+                Text("Repository Filter")
+                    .font(.system(size: 18, weight: .semibold))
+                
+                VStack(spacing: 8) {
+                    Text("Choose which repositories to monitor.")
+                        .font(.system(size: 13))
+                        .foregroundColor(.primary)
+                    
+                    VStack(spacing: 4) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "info.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.blue)
+                            
+                            Text("Empty = all public PRs")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                            
+                            Text("With repos = only those repos (public or private)")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+            }
+            .padding(.top, 20)
+            .padding(.bottom, 16)
+            
+            Divider()
+            
             // Content
             VStack(alignment: .leading, spacing: 16) {
                 // Add repository section
                 VStack(alignment: .leading, spacing: 8) {
+                    Text("Add Repository")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.secondary)
+                        .textCase(.uppercase)
+                    
                     HStack(spacing: 6) {
                         TextField("owner/repository", text: $newRepo)
                             .textFieldStyle(.roundedBorder)
@@ -30,73 +75,106 @@ struct RepositoryFilterView: View {
                             }
                         
                         Button(action: addRepository) {
-                            Image(systemName: "plus")
-                                .font(.system(size: 13))
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(Color.accentColor)
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.plain)
                         .disabled(newRepo.isEmpty)
                         .help("Add repository")
                     }
                     
                     if showError {
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 10))
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                                .font(.system(size: 12))
                             Text(errorMessage)
                                 .font(.system(size: 11))
                         }
                         .foregroundColor(.red)
-                        .padding(.top, 2)
+                        .padding(.top, 4)
                     }
                 }
                 
                 // List section
                 VStack(alignment: .leading, spacing: 8) {
-                    if !repositories.isEmpty {
-                        HStack {
-                            Text("Repositories (\(repositories.count))")
-                                .font(.system(size: 11, weight: .medium))
+                    HStack {
+                        if repositories.isEmpty {
+                            Text("No Filter Active")
+                                .font(.system(size: 12, weight: .semibold))
                                 .foregroundColor(.secondary)
-                            Spacer()
+                                .textCase(.uppercase)
+                        } else {
+                            Text("Active Filters (\(repositories.count))")
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
                         }
+                        Spacer()
                     }
                     
                     if repositories.isEmpty {
-                        VStack(spacing: 6) {
-                            Text("No filters")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
+                        VStack(spacing: 10) {
+                            Image(systemName: "checkmark.circle")
+                                .font(.system(size: 28))
+                                .foregroundColor(.green)
                             
-                            Text("All your assigned PRs will be shown")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
+                            Text("Showing all public PRs")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.primary)
+                            
+                            VStack(spacing: 4) {
+                                Text("Add repositories above to create an exclusive filter")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary)
+                                
+                                Text("(you can mix public and private repos)")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.secondary)
+                                    .opacity(0.8)
+                            }
+                            .multilineTextAlignment(.center)
+                            .padding(.horizontal, 20)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 40)
                     } else {
-                        List {
-                            ForEach(repositories, id: \.self) { repo in
-                                HStack(spacing: 8) {
-                                    Text(repo)
-                                        .font(.system(size: 13))
-                                    
-                                    Spacer()
-                                    
-                                    Button(action: {
-                                        removeRepository(repo)
-                                    }) {
-                                        Image(systemName: "minus.circle")
-                                            .font(.system(size: 14))
-                                            .foregroundColor(.secondary)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                                .padding(.vertical, 2)
+                        VStack(spacing: 6) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "line.3.horizontal.decrease.circle.fill")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.orange)
+                                Text("Only PRs from these repositories will be shown")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(.orange)
                             }
+                            .padding(.bottom, 4)
+                            
+                            List {
+                                ForEach(repositories, id: \.self) { repo in
+                                    HStack(spacing: 8) {
+                                        Text(repo)
+                                            .font(.system(size: 13))
+                                        
+                                        Spacer()
+                                        
+                                        Button(action: {
+                                            removeRepository(repo)
+                                        }) {
+                                            Image(systemName: "minus.circle")
+                                                .font(.system(size: 14))
+                                                .foregroundColor(.secondary)
+                                        }
+                                        .buttonStyle(.plain)
+                                        .help("Remove filter")
+                                    }
+                                    .padding(.vertical, 2)
+                                }
+                            }
+                            .listStyle(.inset)
+                            .scrollContentBackground(.visible)
+                            .frame(height: 160)
                         }
-                        .listStyle(.inset)
-                        .scrollContentBackground(.visible)
-                        .frame(height: 200)
                     }
                 }
             }
@@ -122,7 +200,7 @@ struct RepositoryFilterView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
         }
-        .frame(width: 460, height: 380)
+        .frame(width: 500, height: 500)
         .background(Color(NSColor.windowBackgroundColor))
     }
     

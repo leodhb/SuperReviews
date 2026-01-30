@@ -86,7 +86,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             menu.addItem(NSMenuItem.separator())
             
-            // Settings submenu
+            // Help submenu
+            let helpSubmenu = NSMenu()
+            helpSubmenu.addItem(NSMenuItem(title: "Why aren't my PRs showing up?", action: #selector(showHelp), keyEquivalent: ""))
+            
+            let helpItem = NSMenuItem(title: "Help", action: nil, keyEquivalent: "")
+            helpItem.submenu = helpSubmenu
+            menu.addItem(helpItem)
+            
+            // Settings submenu (no separator)
             let settingsSubmenu = NSMenu()
             
             // Toggle Notifications item (with status)
@@ -433,6 +441,33 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     var repositoryFilterWindow: NSWindow?
+    var helpWindow: NSWindow?
+    
+    @objc func showHelp() {
+        let contentView = HelpView(
+            onOpenFilter: { [weak self] in
+                self?.helpWindow?.close()
+                self?.openRepositoryFilter()
+            },
+            onClose: { [weak self] in
+                self?.helpWindow?.close()
+            }
+        )
+        
+        let hostingController = NSHostingController(rootView: contentView)
+        
+        let window = NSWindow(contentViewController: hostingController)
+        window.styleMask = [.titled, .closable]
+        window.title = "Help"
+        window.isReleasedWhenClosed = false
+        window.level = .floating
+        
+        self.helpWindow = window
+        
+        window.makeKeyAndOrderFront(nil)
+        window.center()
+        NSApp.activate(ignoringOtherApps: true)
+    }
     
     @objc func quit() {
         NSApp.terminate(nil)
