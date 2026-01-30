@@ -56,6 +56,7 @@ class OAuthService {
     }
     
     // Device Flow: Step 2 - Poll for access token
+    // Yeah polling is not gambiarra here. According to https://datatracker.ietf.org/doc/html/rfc8628
     func pollForToken(deviceCode: String, interval: Int = 5, completion: @escaping (Result<String, Error>) -> Void) {
         guard let url = URL(string: "https://github.com/login/oauth/access_token") else {
             completion(.failure(NSError(domain: "OAuthService", code: 4, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
